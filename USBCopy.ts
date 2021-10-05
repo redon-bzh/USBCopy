@@ -2,9 +2,16 @@
 
 import { join } from "https://deno.land/std@0.106.0/path/mod.ts";
 import * as log from "https://deno.land/std@0.106.0/log/mod.ts";
+import { format } from "https://deno.land/std@0.106.0/datetime/mod.ts";
 
 const __dirname = new URL(".", import.meta.url).pathname;
 const dir = join(__dirname, 'Kit_cle_USB').slice(1);
+
+// Version
+const version = '0.0.1';
+
+// Force Dir
+Deno.mkdir(dir, { recursive: true });
 
 /**
  * Sleep
@@ -15,15 +22,38 @@ function sleep(seconds: number){
     return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
 
-const version = '0.0.1';
+
 // Timer
 var timer = Date.now();
+var filesList: Array<string> = [];
+var keys: Array<string> = [];
+var count: number = 0;
 
-log.info(`
+console.log(`
 =================================
   WELCOME TO USBCopy v${version}
 =================================
 `);
+
+
+await sleep(2);
+
+// Files list
+for (const entry of Deno.readDirSync(dir)) {
+    if(entry.isFile) {
+        filesList.push(entry.name);
+    }
+}
+
+// Check filesList
+if(filesList.length ==0) {
+    log.critical("⚠  You are not files in dir Kit_cle_USB\n  => Put files in dir Kit_cle_USB and start again!");
+    Deno.exit(1);
+} else {
+    log.info('List of files');
+    console.table(filesList);
+}
+
 
 // Get list drive USB
 const drive = Deno.run({
@@ -31,8 +61,6 @@ const drive = Deno.run({
     stdout: "piped",
     stderr: "piped",
 });
-
-let keys: Array<string> = [];
 
 // await its completion
 const { code } = await drive.status();
@@ -51,57 +79,103 @@ if (code === 0) {
 } else {
   const errorString = new TextDecoder().decode(rawError);
   log.warning(errorString);
+  Deno.exit(1);
 }
 
+// Check USBKeys connected
+if(keys.length ==0) {
+    log.critical("⚠  You are not USB key connected\n  => Connect your USB Keys!");
+    Deno.exit(1);
+}
 
-// Prepare all keys
-keys.forEach( (key) => {
-    log.info("✔ Check: clés USB " + key);
-    Deno.run({
-        cmd: [ 'convert', key,  '/fs:ntfs', '/x'],
-        stdout: "inherit",
-        stderr: "inherit",
-    });
-});
+/**
+ * Convert format USBkey to NTFS
+ * @param keys array USB keys
+ */
+async function convertFormatKeys ( keys: Array<string>) {
 
-await sleep(5);
+    for (let index = 0; index < keys.length; index++) {
+        log.info("✔ Check: clés USB " + keys[index]);
+        const k = Deno.run({
+            cmd: [ 'convert', keys[index],  '/fs:ntfs', '/x'],
+            stdout: "inherit",
+            stderr: "inherit",
+        });
+        await k.status();
+        
+    }
+}
+
+// Convert Keys
+await convertFormatKeys(keys);
+
 
 // Delete all file in keys
 keys.forEach( (key) => {
     for (const entry of Deno.readDirSync(key)) {
         if(entry.isFile == true) {
             Deno.removeSync(join(key + entry.name));
-            
         }
     }
     log.info("✔ Purge fichiers clés USB " + key );
 });
 
-log.critical("⚠  Copy files in keys, don't touch USB Keys!\n");
 
-let table = [];
-let i = 0;
+count = filesList.length * keys.length;
+log.critical("⚠  Copy files in keys, don't touch USB Keys!\nOperations files:" + count);
+
+await sleep(2);
+
+let i:number = 0;
+let j:number = 0;
+let k:number = 0;
 
 keys.forEach( (key:string) => {
-    for (const entry of Deno.readDirSync(dir)) {
-        i++;
-        if(entry.isFile == true) {
-            // try {
-            //     Deno.copyFileSync( join(dir, entry.name), join(key + entry.name))
-            //     log.info("✔ " + (Date.now() - timer)/1000 + 'second - filename: ' + entry.name + ' in key: ' + key)
-            // } catch (err) {
-            //     log.error(err);
-            // }
-            Deno.copyFile( join(dir, entry.name), join(key + entry.name))
-            .then( () => {
-                log.info("✔ " + (Date.now() - timer)/1000 + 'second - filename: ' + entry.name + ' in key: ' + key)
-                table.push(entry.name)
-                if (table.length >= (keys.length + i)){
-                    log.info("\n");
-                    log.info("✔ " + (Date.now() - timer)/1000 + 'second - All files is copied ' + i);
-                }
-            })
-            .catch( err => log.critical(err))
-        }
+    for (const entry of filesList) {
+        // i++
+        // try {
+        //     Deno.copyFileSync( join(dir, entry.name), join(key + entry.name))
+        //     log.info("✔ " + (Date.now() - timer)/1000 + 'second - filename: ' + entry.name + ' in key: ' + key)
+        // } catch (err) {
+        //     log.error(err);
+        // }
+        Deno.copyFile( join(dir, entry), join(key + entry))
+        .then( () => {
+            i++;
+            k++;
+            log.info("✔ " + (Date.now() - timer)/1000 + 'second - filename: ' + entry + ' in key: ' + key)
+            if (i>=count){
+                log.info("✔ " + (Date.now() - timer)/1000 + 'second - All files is copied ' + i);
+                const encoder = new TextEncoder();
+                const data = encoder.encode(`
+========================
+    USBCopy ${version}
+========================
+
+${format(new Date(), "MM-dd-yyyy hh:mm a")}
+
+Files:
+${ filesList.join("\n")}
+
+USBKeys:
+${ keys.join("\n")}
+----
+
+Files copied: ${k}
+Files error copy: ${j}
+Time elapse: ${(Date.now() - timer)/1000} Sec
+
+----
+`);
+                Deno.writeFileSync("history.txt", data);
+            }
+        })
+        .catch( err => {
+            i++;
+            j++;
+            log.warning("⚠  Error copy file: " + entry);
+            log.critical(err);
+        })
+        
     }
 });
