@@ -9,6 +9,7 @@ const dir = join(__dirname, 'Kit_cle_USB').slice(1);
 
 // Version
 const version = '0.0.1';
+const label = "REDON_Agglomération";
 
 // Force Dir
 Deno.mkdir(dir, { recursive: true });
@@ -102,6 +103,12 @@ async function convertFormatKeys ( keys: Array<string>) {
             stderr: "inherit",
         });
         await k.status();
+        const p = Deno.run({
+            cmd: [ 'LABEL', keys[index], label],
+            stdout: "inherit",
+            stderr: "inherit",
+        });
+        await p.status();
         
     }
 }
