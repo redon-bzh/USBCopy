@@ -5,7 +5,8 @@ import * as log from "https://deno.land/std@0.106.0/log/mod.ts";
 import { format } from "https://deno.land/std@0.106.0/datetime/mod.ts";
 
 const __dirname = new URL(".", import.meta.url).pathname;
-const dir = join(__dirname, 'Kit_cle_USB').slice(1);
+// const dir = join(__dirname, 'Kit_cle_USB').slice(1);
+const dir = 'Kit_cle_USB'; 
 
 // Version
 const version = '0.0.1';
