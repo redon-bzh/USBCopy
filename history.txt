@@ -3,7 +3,7 @@
     USBCopy 0.0.1
 ========================
 
-10-05-2021 11:02 AM
+10-05-2021 11:03 AM
 
 Files:
 #passezalouest et #JetezlAncreEnPaysDeRedon.mp4
@@ -12,10 +12,11 @@ test.txt
 
 USBKeys:
 E:
+F:
 ----
 
-Files copied: 3
+Files copied: 6
 Files error copy: 0
-Time elapse: 15.134 Sec
+Time elapse: 15.467 Sec
 
 ----

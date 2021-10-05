@@ -152,7 +152,7 @@ keys.forEach( (key:string) => {
     USBCopy ${version}
 ========================
 
-${format(new Date(), "MM-dd-yyyy hh:mm a")}
+Date: ${format(new Date(), "MM-dd-yyyy hh:mm a")}
 
 Files:
 ${ filesList.join("\n")}
