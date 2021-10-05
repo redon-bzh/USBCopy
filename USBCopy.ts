@@ -9,7 +9,7 @@ const __dirname = new URL(".", import.meta.url).pathname;
 const dir = "Kit_cle_USB";
 
 // Version
-const version = "0.0.1";
+const version = "0.0.2";
 const label = "REDON_Agglomération";
 
 // Force Dir
@@ -52,7 +52,7 @@ if (filesList.length == 0) {
   );
   Deno.exit(1);
 } else {
-  log.info("List of files");
+  console.log("List of files");
   console.table(filesList);
 }
 
@@ -96,7 +96,7 @@ async function convertFormatKeys(keys: Array<string>) {
   for (let index = 0; index < keys.length; index++) {
     log.info("✔ Check: clés USB " + keys[index]);
     const k = Deno.run({
-      cmd: ["convert", keys[index], "/fs:ntfs", "/x"],
+      cmd: ["convert", keys[index], "/fs:ntfs", '/v'],
       stdout: "inherit",
       stderr: "inherit",
     });
@@ -120,7 +120,7 @@ keys.forEach((key) => {
       Deno.removeSync(join(key + entry.name));
     }
   }
-  log.info("✔ Purge fichiers clés USB " + key);
+  console.log("✔ Purge fichiers clés USB " + key);
 });
 
 count = filesList.length * keys.length;
@@ -147,12 +147,12 @@ keys.forEach((key: string) => {
       .then(() => {
         i++;
         k++;
-        log.info(
+        console.log(
           "✔ " + (Date.now() - timer) / 1000 + "second - filename: " + entry +
             " in key: " + key,
         );
         if (i >= count) {
-          log.info(
+          console.log(
             "✔ " + (Date.now() - timer) / 1000 +
               "second - All files is copied " + i,
           );
