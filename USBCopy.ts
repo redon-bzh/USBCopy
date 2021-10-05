@@ -9,7 +9,7 @@ const __dirname = new URL(".", import.meta.url).pathname;
 const dir = "Kit_cle_USB";
 
 // Version
-const version = "0.0.1";
+const version = "0.0.2";
 const label = "REDON_Agglomération";
 
 // Force Dir
