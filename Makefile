@@ -43,7 +43,7 @@ clean:
 
 compile:
 	@echo "Deno Compile ..."
-	deno compile -A --unstable .\USBcopy.ts
+	deno compile -A --unstable --target x86_64-pc-windows-msv .\USBcopy.ts
 
 inspect:
 	@echo "Deno inspect ..."
