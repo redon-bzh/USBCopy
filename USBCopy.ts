@@ -101,6 +101,7 @@ async function convertFormatKeys(keys: Array<string>) {
       stderr: "inherit",
     });
     await k.status();
+    await sleep(2);
     const p = Deno.run({
       cmd: ["LABEL", keys[index], label],
       stdout: "inherit",
